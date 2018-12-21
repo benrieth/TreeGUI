@@ -126,7 +126,7 @@ public class TheGUI extends Application {
 			
 			theTree.add(rootBtn, theTree.getColumnConstraints().size()/2, 0);
 		} else {
-			rootNode.insert(Integer.parseInt(valueTxtFld.getText()), 1, theTree);
+			rootNode.insert(Integer.parseInt(valueTxtFld.getText()), 1, theTree, rootNode);
 
 		}
 		valueTxtFld.setText("");
@@ -159,72 +159,73 @@ class ButtonNode {
 		prev = null;
 	}
 	
-	public void insert(int value, int layer, GridPane pane) {
-		ButtonNode parent = this;
+	public void insert(int value, int layer, GridPane pane, ButtonNode root) {
 		if (value <= Integer.parseInt(data.getText())) {
 			if (left == null) {
 				Button btn = new Button(value + "");
-				
-				btn.setOnAction(new EventHandler<ActionEvent>() {
-					@Override
-					public void handle(ActionEvent event) {
-						parent.remove(pane);
-					}
-				});
 				
 				left = new ButtonNode(btn);
 				left.layer = layer;
 				left.prev = this;
 				
 				pane.add(btn, (int) (GridPane.getColumnIndex(left.prev.data) - 8*Math.pow(.5, layer-1)), layer);
-			} else {
-				left.insert(value, layer+1, pane);
-			}
-		} else {
-			if (right == null) {
-				Button btn = new Button(value + "");
 				
 				btn.setOnAction(new EventHandler<ActionEvent>() {
 					@Override
 					public void handle(ActionEvent event) {
-						parent.remove(pane);
+						ArrayList<Button> toAddBack;
+						toAddBack = left.remove(left, pane);
+						left = null;
+						addBack(toAddBack, root, pane);
 					}
 				});
+			} else {
+				left.insert(value, layer+1, pane, root);
+			}
+		} else {
+			if (right == null) {
+				Button btn = new Button(value + "");
 				
 				right = new ButtonNode(btn);
 				right.layer = layer;
 				right.prev = this;
 				
 				pane.add(btn, (int) (GridPane.getColumnIndex(right.prev.data) + 8*Math.pow(.5, layer-1)), layer);
+				
+				btn.setOnAction(new EventHandler<ActionEvent>() {
+					@Override
+					public void handle(ActionEvent event) {
+						ArrayList<Button> toAddBack;
+						toAddBack = right.remove(right, pane);
+						right = null;
+						addBack(toAddBack, root, pane);
+					}
+				});
 			} else {
-				right.insert(value, layer+1, pane);
+				right.insert(value, layer+1, pane, root);
 			}
 		}
 	}
 	
-	public void remove(GridPane pane) {
-		int value = Integer.parseInt(this.data.getText());
-		ArrayList<Button> subValues = this.collectValues();
+	public ArrayList<Button> remove(ButtonNode toBeRemoved, GridPane pane) {
+		int value = Integer.parseInt(toBeRemoved.data.getText());
+		ArrayList<Button> subValues = toBeRemoved.collectValues();
 		
 		for(Button btn: subValues) {
 			pane.getChildren().remove(btn);
+			
 		}
 		
-		pane.getChildren().remove(this.data);
+		subValues.remove(toBeRemoved.data);
+		toBeRemoved = null;
 		
-		subValues.remove(0);
+		return subValues;
+	}
+	
+	private void addBack(ArrayList<Button> subValues, ButtonNode root, GridPane pane) {
 		for(Button btn: subValues) {
-			prev.insert(Integer.parseInt(btn.getText()), 0, pane);
+			root.insert(Integer.parseInt(btn.getText()), 0, pane, root);
 		}
-		
-		
-		
-		if (value <= Integer.parseInt(prev.data.getText())) {
-			this.prev.left = null;
-		} else {
-			this.prev.right = null;
-		}
-		
 	}
 	
 	private ArrayList<Button> collectValues() {
@@ -238,14 +239,6 @@ class ButtonNode {
 		}
 		
 		return list;
-	}
-
-	private void drawLine(GraphicsContext gc, double x0, double y0, double x, double y) {
-		 gc.setStroke(Color.FORESTGREEN.brighter());
-		 gc.beginPath();
-		 gc.moveTo(x0, y0);
-		 gc.lineTo(x, y);
-		 gc.stroke();
 	}
 }
 
