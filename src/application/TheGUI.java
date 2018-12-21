@@ -34,6 +34,7 @@ import javafx.stage.Stage;
 public class TheGUI extends Application {
 	
 	Button importBtn;
+	Button clearBtn;
 	TextField valueTxtFld;
 	
 	StackPane dangerZone;
@@ -60,18 +61,26 @@ public class TheGUI extends Application {
 		
         dangerZone = new StackPane();
         
-		menu = new HBox();
+		menu = new HBox(5);
 		menu.setAlignment(Pos.CENTER);
 		
 		valueTxtFld = new TextField();
 		importBtn = new Button("Add Value");
+		clearBtn = new Button("Clear All");
 		
-		menu.getChildren().addAll(valueTxtFld, importBtn);
+		menu.getChildren().addAll(valueTxtFld, importBtn, clearBtn);
 		
 		importBtn.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent e) {
 				addNode();
+			}
+		});
+		
+		clearBtn.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent e) {
+				clearTree();
 			}
 		});
 		
@@ -134,19 +143,9 @@ public class TheGUI extends Application {
 		valueTxtFld.setText("");
 	}
 	
-	/*private void drawLine(GraphicsContext gc, double x0, double y0, double x, double y) {
-		gc.beginPath();
-		gc.moveTo(x0, y0);
-		gc.lineTo(x, y);
-		gc.stroke();
-	}*/
-	
-	private void removeNode() {
-		
-	}
-	
 	private void clearTree() {
-		
+		rootNode = null;
+		theTree.getChildren().clear();
 	}
 }
 
