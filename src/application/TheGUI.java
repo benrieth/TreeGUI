@@ -1,6 +1,8 @@
 package application;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import javafx.application.Application;
 
@@ -126,7 +128,7 @@ public class TheGUI extends Application {
 			
 			theTree.add(rootBtn, theTree.getColumnConstraints().size()/2, 0);
 		} else {
-			rootNode.insert(Integer.parseInt(valueTxtFld.getText()), 1, theTree, rootNode);
+			rootNode.insert(Integer.parseInt(valueTxtFld.getText()), 1, theTree);
 
 		}
 		valueTxtFld.setText("");
@@ -159,7 +161,7 @@ class ButtonNode {
 		prev = null;
 	}
 	
-	public void insert(int value, int layer, GridPane pane, ButtonNode root) {
+	public void insert(int value, int layer, GridPane pane) {
 		if (value <= Integer.parseInt(data.getText())) {
 			if (left == null) {
 				Button btn = new Button(value + "");
@@ -175,12 +177,13 @@ class ButtonNode {
 					public void handle(ActionEvent event) {
 						ArrayList<Button> toAddBack;
 						toAddBack = left.remove(left, pane);
+						ButtonNode temp = left.prev;
 						left = null;
-						addBack(toAddBack, root, pane);
+						addBack(toAddBack, temp, pane);
 					}
 				});
 			} else {
-				left.insert(value, layer+1, pane, root);
+				left.insert(value, layer+1, pane);
 			}
 		} else {
 			if (right == null) {
@@ -197,18 +200,18 @@ class ButtonNode {
 					public void handle(ActionEvent event) {
 						ArrayList<Button> toAddBack;
 						toAddBack = right.remove(right, pane);
+						ButtonNode temp = right.prev;
 						right = null;
-						addBack(toAddBack, root, pane);
+						addBack(toAddBack, temp, pane);
 					}
 				});
 			} else {
-				right.insert(value, layer+1, pane, root);
+				right.insert(value, layer+1, pane);
 			}
 		}
 	}
 	
 	public ArrayList<Button> remove(ButtonNode toBeRemoved, GridPane pane) {
-		int value = Integer.parseInt(toBeRemoved.data.getText());
 		ArrayList<Button> subValues = toBeRemoved.collectValues();
 		
 		for(Button btn: subValues) {
@@ -222,9 +225,30 @@ class ButtonNode {
 		return subValues;
 	}
 	
-	private void addBack(ArrayList<Button> subValues, ButtonNode root, GridPane pane) {
-		for(Button btn: subValues) {
-			root.insert(Integer.parseInt(btn.getText()), 0, pane, root);
+	private void addBack(ArrayList<Button> subValues, ButtonNode parent, GridPane pane) {
+		
+		Collections.sort(subValues, new Comparator<Button>() {
+			public int compare(Button a, Button b) {
+				int val1 = Integer.parseInt(a.getText());
+				int val2 = Integer.parseInt(b.getText());
+				
+				if(val1 == val2) {
+					return 0;
+				} else if(val1 > val2) {
+					return 1;
+				} else {
+					return -1;
+				}
+			}
+		});
+		
+		Button toInsert;
+		while(!subValues.isEmpty()) {
+		
+			toInsert = subValues.get(subValues.size()/2);
+			
+			subValues.remove(toInsert);
+			parent.insert(Integer.parseInt(toInsert.getText()), parent.layer+1, pane);
 		}
 	}
 	
